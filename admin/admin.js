@@ -1,189 +1,52 @@
-(() => {
-  'use strict';
-
-  const BASE = 'https://api.streamlinebusinessos.com/api/v1';
-  const $ = (selector) => document.querySelector(selector);
-  let token = sessionStorage.getItem('streamlineHqWebToken') || '';
-  let user = null;
-  let dashboardData = null;
-  let activeFilter = 'all';
-  let activeLeadId = null;
-
-  if (window.location.search || window.location.hash) window.history.replaceState({}, document.title, window.location.pathname);
-
-  function showError(el, message) { if (!el) return; el.style.display = 'block'; el.textContent = message; }
-  function clearError(el) { if (!el) return; el.style.display = 'none'; el.textContent = ''; }
-  function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function formatDate(value, includeTime = true) { if (!value) return '—'; const d = new Date(value); if (Number.isNaN(d.getTime())) return '—'; return d.toLocaleString([], includeTime ? {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'} : {month:'short',day:'numeric',year:'numeric'}); }
-  function prettyStatus(value) { return String(value || 'new').replaceAll('_',' ').replace(/\b\w/g, c => c.toUpperCase()); }
-  function isClosedStatus(status) { return ['won','lost','closed','disqualified'].includes(String(status || '').toLowerCase()); }
-
-  async function api(path, options = {}) {
-    const headers = {Accept:'application/json', ...(options.body ? {'Content-Type':'application/json'} : {}), ...(token ? {Authorization:`Bearer ${token}`} : {}), ...(options.headers || {})};
-    let response;
-    try { response = await fetch(`${BASE}${path}`, {...options, headers, cache:'no-store', mode:'cors', credentials:'omit', referrerPolicy:'strict-origin-when-cross-origin'}); }
-    catch { throw new Error('Unable to reach Streamline Cloud. Check your connection and try again.'); }
-    const payload = await response.json().catch(() => ({}));
-    if (response.status === 401 && path !== '/hq-auth/login') { logout(); throw new Error(payload?.error?.message || 'Your HQ session expired. Sign in again.'); }
-    if (!response.ok || payload.ok === false) throw new Error(payload?.error?.message || `Cloud request failed (${response.status}).`);
-    return payload;
-  }
-
-  function logout() {
-    token = ''; user = null; dashboardData = null;
-    sessionStorage.removeItem('streamlineHqWebToken'); sessionStorage.removeItem('streamlineHqWebUser');
-    $('#dashboard-view')?.classList.remove('active'); if ($('#login-view')) $('#login-view').style.display = 'block'; closeLead();
-  }
-
-  async function login(loginId, pin) {
-    const payload = await api('/hq-auth/login', {method:'POST', body:JSON.stringify({loginId, pin})});
-    if (!payload.accessToken || !payload.user) throw new Error('Streamline Cloud did not return a valid HQ session.');
-    token = payload.accessToken; user = payload.user;
-    sessionStorage.setItem('streamlineHqWebToken', token); sessionStorage.setItem('streamlineHqWebUser', JSON.stringify(user));
-    await openDashboard();
-  }
-
-  function assigneeName(id) {
-    if (!id) return 'Unassigned';
-    const match = dashboardData?.assignableUsers?.find(x => String(x.userId) === String(id));
-    return match?.displayName || match?.loginId || 'Assigned user';
-  }
-
-  function allLeadPool() {
-    const d = dashboardData || {};
-    const map = new Map();
-    [...(d.leads || []), ...(d.todayLeads || []), ...(d.newWebLeads || [])].forEach(l => map.set(String(l.id), l));
-    return [...map.values()];
-  }
-
-  function filteredLeads() {
-    const d = dashboardData || {};
-    let rows = allLeadPool();
-    const manager = Boolean(d.manager);
-    if (!manager) rows = d.todayLeads || [];
-    if (activeFilter === 'new-web') rows = manager ? (d.newWebLeads || []) : rows.filter(l => l.source === 'website' && l.status === 'new');
-    if (activeFilter === 'today') rows = d.todayLeads || [];
-    if (activeFilter === 'unassigned') rows = rows.filter(l => !l.assigned_user_id);
-    if (activeFilter === 'open') rows = rows.filter(l => !isClosedStatus(l.status));
-    const q = String($('#lead-search')?.value || '').trim().toLowerCase();
-    if (q) rows = rows.filter(l => [l.business_name,l.contact_name,l.email,l.phone,l.source,l.status,assigneeName(l.assigned_user_id)].some(v => String(v || '').toLowerCase().includes(q)));
-    return rows;
-  }
-
-  function leadElement(lead) {
-    const el = document.createElement('button'); el.type = 'button'; el.className = 'lead-row'; el.dataset.leadId = lead.id;
-    el.innerHTML = `
-      <div class="lead-name"><strong>${escapeHtml(lead.business_name || lead.contact_name || 'Unnamed lead')}</strong><span>${escapeHtml(lead.contact_name || 'No contact name')}</span></div>
-      <div class="lead-cell"><strong>${escapeHtml(lead.email || lead.phone || 'No contact info')}</strong><span>${escapeHtml(lead.phone || lead.email || '')}</span></div>
-      <div class="lead-cell"><strong>${formatDate(lead.consultation_at || lead.created_at)}</strong><span>${escapeHtml(lead.source || 'manual')}</span></div>
-      <div class="lead-cell"><strong>${escapeHtml(assigneeName(lead.assigned_user_id))}</strong><span>${lead.assigned_user_id ? 'Assigned' : 'Needs assignment'}</span></div>
-      <div><span class="status-pill status-${escapeHtml(String(lead.status || 'new').toLowerCase())}">${escapeHtml(prettyStatus(lead.status))}</span></div>`;
-    el.addEventListener('click', () => openLead(lead.id));
-    return el;
-  }
-
-  function renderLeads() {
-    const list = $('#lead-list'); if (!list) return; list.innerHTML = '';
-    const leads = filteredLeads();
-    if (!leads.length) { list.innerHTML = '<div class="empty-state"><strong>No leads match this view.</strong><span>Try another filter or search.</span></div>'; return; }
-    leads.forEach(l => list.appendChild(leadElement(l)));
-  }
-
-  async function loadDashboard() {
-    clearError($('#dashboard-error'));
-    try {
-      const payload = await api('/hq/web-dashboard'); dashboardData = payload.dashboard || {};
-      const d = dashboardData, manager = Boolean(d.manager);
-      $('#kpi-a-label').textContent = manager ? 'New web leads' : 'My leads today';
-      $('#kpi-a').textContent = manager ? (d.newWebLeads?.length || 0) : (d.todayLeads?.length || 0);
-      $('#kpi-b-label').textContent = manager ? "Today's team leads" : 'My open leads';
-      $('#kpi-b').textContent = manager ? (d.todayLeads?.length || 0) : (d.openLeads || 0);
-      $('#kpi-c-label').textContent = manager ? 'Open team leads' : 'My total leads'; $('#kpi-c').textContent = d.openLeads || 0;
-      $('#lead-title').textContent = manager ? 'Team & web leads' : "Today's leads";
-      $('#lead-subtitle').textContent = manager ? 'Click any lead to review details, activity, quotes, and assignment.' : 'Click any lead to review its full details.';
-      const select = $('#lead-filter'); if (select) { select.querySelector('option[value="unassigned"]')?.toggleAttribute('hidden', !manager); }
-      renderLeads();
-      if (activeLeadId && $('#lead-modal')?.classList.contains('open')) await openLead(activeLeadId, true);
-    } catch (error) { showError($('#dashboard-error'), error.message); }
-  }
-
-  function renderProducts(products) {
-    if (!Array.isArray(products) || !products.length) return '<span class="muted">None specified</span>';
-    return `<div class="detail-tags">${products.map(p => `<span>${escapeHtml(p)}</span>`).join('')}</div>`;
-  }
-
-  function renderTimeline(events) {
-    if (!Array.isArray(events) || !events.length) return '<div class="detail-empty">No activity recorded yet.</div>';
-    return `<div class="lead-timeline">${events.slice().reverse().map(e => `<div class="timeline-item"><span class="timeline-dot"></span><div><strong>${escapeHtml(prettyStatus(e.event_type || 'update'))}</strong><p>${formatDate(e.created_at)}</p></div></div>`).join('')}</div>`;
-  }
-
-  function renderQuotes(quotes) {
-    if (!Array.isArray(quotes) || !quotes.length) return '<div class="detail-empty">No quotes created for this lead.</div>';
-    return `<div class="quote-mini-list">${quotes.map(q => `<div class="quote-mini"><div><strong>${escapeHtml(q.quote_number || 'Quote')}</strong><span>${formatDate(q.created_at,false)}</span></div><div><strong>$${Number(q.total || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong><span class="status-pill">${escapeHtml(prettyStatus(q.status))}</span></div></div>`).join('')}</div>`;
-  }
-
-  function assignmentControl(lead) {
-    if (!dashboardData?.manager) return `<div class="detail-value">${escapeHtml(assigneeName(lead.assigned_user_id))}</div>`;
-    const users = dashboardData.assignableUsers || [];
-    return `<div class="assignment-editor"><select id="detail-assignee" class="admin-select"><option value="">Select a team member…</option>${users.map(u => `<option value="${escapeHtml(u.userId)}" ${String(u.userId)===String(lead.assigned_user_id)?'selected':''}>${escapeHtml(u.displayName || u.loginId)}${u.role ? ` · ${escapeHtml(u.role)}` : ''}</option>`).join('')}</select><button id="assign-lead-btn" class="admin-btn primary-small" type="button">${lead.assigned_user_id ? 'Reassign' : 'Assign lead'}</button></div>`;
-  }
-
-  async function assignLead(leadId) {
-    const userId = $('#detail-assignee')?.value; if (!userId) { showError($('#lead-detail-error'), 'Choose a team member first.'); return; }
-    const btn = $('#assign-lead-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Assigning…'; }
-    clearError($('#lead-detail-error'));
-    try { await api(`/hq/leads/${encodeURIComponent(leadId)}/assign`, {method:'POST', body:JSON.stringify({userId})}); await loadDashboard(); await openLead(leadId, true); }
-    catch (e) { showError($('#lead-detail-error'), e.message); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = 'Reassign'; } }
-  }
-
-  async function openLead(leadId, refresh = false) {
-    activeLeadId = leadId; const modal = $('#lead-modal'); if (!modal) return;
-    if (!refresh) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.classList.add('drawer-open'); $('#lead-detail-body').innerHTML = '<div class="empty-state">Loading lead…</div>'; }
-    try {
-      const payload = await api(`/hq/leads/${encodeURIComponent(leadId)}`); const lead = payload.lead;
-      $('#lead-detail-title').textContent = lead.business_name || lead.contact_name || 'Lead';
-      $('#lead-detail-subtitle').textContent = `${lead.contact_name || 'No contact name'} · ${prettyStatus(lead.status)}`;
-      $('#lead-detail-body').innerHTML = `
-        <div id="lead-detail-error" class="admin-error"></div>
-        <div class="detail-actions">${lead.phone ? `<a class="detail-action" href="tel:${escapeHtml(lead.phone)}">Call ${escapeHtml(lead.phone)}</a>`:''}${lead.email ? `<a class="detail-action" href="mailto:${escapeHtml(lead.email)}">Email lead</a>`:''}</div>
-        <div class="detail-section"><h3>Contact & business</h3><div class="detail-grid"><div><span>Name</span><strong>${escapeHtml(lead.contact_name || '—')}</strong></div><div><span>Business</span><strong>${escapeHtml(lead.business_name || '—')}</strong></div><div><span>Email</span><strong>${escapeHtml(lead.email || '—')}</strong></div><div><span>Phone</span><strong>${escapeHtml(lead.phone || '—')}</strong></div><div><span>Source</span><strong>${escapeHtml(prettyStatus(lead.source || 'manual'))}</strong></div><div><span>Created</span><strong>${formatDate(lead.created_at)}</strong></div></div></div>
-        <div class="detail-section"><h3>Assignment</h3>${assignmentControl(lead)}<div class="detail-grid compact"><div><span>Assigned</span><strong>${formatDate(lead.assigned_at)}</strong></div><div><span>Consultation due</span><strong>${formatDate(lead.consultation_due_at)}</strong></div><div><span>Consultation</span><strong>${formatDate(lead.consultation_at)}</strong></div><div><span>Status</span><strong>${escapeHtml(prettyStatus(lead.status))}</strong></div></div></div>
-        <div class="detail-section"><h3>Requested products</h3>${renderProducts(lead.requested_products)}</div>
-        <div class="detail-section"><h3>Customer message</h3><div class="detail-message">${lead.message ? escapeHtml(lead.message) : '<span class="muted">No message provided.</span>'}</div></div>
-        ${Array.isArray(lead.notes)&&lead.notes.length ? `<div class="detail-section"><h3>Notes</h3><div class="detail-notes">${lead.notes.slice().reverse().map(n=>`<div><p>${escapeHtml(n.text||'')}</p><span>${formatDate(n.at)}</span></div>`).join('')}</div></div>`:''}
-        <div class="detail-section"><h3>Quotes</h3>${renderQuotes(payload.quotes)}</div>
-        <div class="detail-section"><h3>Activity</h3>${renderTimeline(payload.events)}</div>`;
-      $('#assign-lead-btn')?.addEventListener('click', () => assignLead(lead.id));
-    } catch (e) { $('#lead-detail-body').innerHTML = `<div class="admin-error" style="display:block">${escapeHtml(e.message)}</div>`; }
-  }
-
-  function closeLead() { activeLeadId = null; const modal = $('#lead-modal'); if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); } document.body.classList.remove('drawer-open'); }
-
-  async function openDashboard() {
-    try {
-      if (!user) { const stored = sessionStorage.getItem('streamlineHqWebUser'); if (stored) try { user = JSON.parse(stored); } catch { sessionStorage.removeItem('streamlineHqWebUser'); } }
-      if (!user) user = (await api('/hq-auth/me')).user;
-      if ($('#login-view')) $('#login-view').style.display = 'none'; $('#dashboard-view')?.classList.add('active');
-      if ($('#admin-greeting')) $('#admin-greeting').textContent = `${user.displayName || user.loginId} · ${prettyStatus(user.role || 'staff')}`;
-      await loadDashboard();
-    } catch (e) { logout(); showError($('#login-error'), e.message); }
-  }
-
-  async function submitLogin() {
-    clearError($('#login-error')); const loginInput=$('#hq-login-id'), pinInput=$('#hq-pin'), btn=$('#login-submit');
-    const loginId=String(loginInput?.value||'').trim(), pin=String(pinInput?.value||''); if (pinInput) pinInput.value='';
-    if (!loginId || !/^\d{4}$/.test(pin)) { showError($('#login-error'),'Enter your HQ Login ID and 4-digit PIN.'); return; }
-    if (btn) { btn.disabled=true; btn.textContent='Signing in…'; }
-    try { await login(loginId,pin); } catch(e) { showError($('#login-error'),e.message); } finally { if(btn){btn.disabled=false;btn.textContent='Sign in securely';} }
-  }
-
-  $('#login-submit')?.addEventListener('click', submitLogin);
-  ['#hq-login-id','#hq-pin'].forEach(s => $(s)?.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();submitLogin();} }));
-  $('#logout-btn')?.addEventListener('click', logout); $('#refresh-btn')?.addEventListener('click', loadDashboard);
-  $('#lead-search')?.addEventListener('input', renderLeads);
-  $('#lead-filter')?.addEventListener('change', e => { activeFilter=e.target.value; renderLeads(); });
-  document.querySelectorAll('.kpi-button').forEach(b => b.addEventListener('click', () => { activeFilter=b.dataset.filter || 'all'; if($('#lead-filter')) $('#lead-filter').value=activeFilter; renderLeads(); $('#lead-list')?.scrollIntoView({behavior:'smooth',block:'start'}); }));
-  $('#lead-modal-close')?.addEventListener('click', closeLead); document.querySelector('[data-close-modal]')?.addEventListener('click', closeLead); document.addEventListener('keydown', e => { if(e.key==='Escape') closeLead(); });
-  if (token) openDashboard();
+(()=>{
+'use strict';
+const BASE='https://api.streamlinebusinessos.com/api/v1', $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let token=sessionStorage.getItem('streamlineHqWebToken')||'', user=null, data=null, notifications=[], analytics=null, activeFilter='all', activeLeadId=null;
+if(location.search||location.hash)history.replaceState({},document.title,location.pathname);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pretty=v=>String(v||'new').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
+const fmt=(v,time=true)=>{if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleString([],time?{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}:{month:'short',day:'numeric',year:'numeric'})};
+const closed=s=>['won','lost','closed','disqualified'].includes(String(s||'').toLowerCase());
+const locationLine=l=>[l.business_city,l.business_state,l.business_postal_code].filter(Boolean).join(', ').replace(/, ([A-Z]{2}), /, '$1 ' )||'Location not provided';
+function err(el,msg){if(!el)return;el.style.display='block';el.textContent=msg} function clear(el){if(!el)return;el.style.display='none';el.textContent=''}
+async function api(path,opt={}){const headers={Accept:'application/json',...(opt.body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:`Bearer ${token}`}:{})};let r;try{r=await fetch(BASE+path,{...opt,headers:{...headers,...(opt.headers||{})},cache:'no-store',mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'})}catch{throw Error('Unable to reach Streamline Cloud.')}const p=await r.json().catch(()=>({}));if(r.status===401&&path!=='/hq-auth/login'){logout();throw Error(p?.error?.message||'Your HQ session expired.')}if(!r.ok||p.ok===false)throw Error(p?.error?.message||`Cloud request failed (${r.status}).`);return p}
+function logout(){token='';user=null;data=null;sessionStorage.removeItem('streamlineHqWebToken');sessionStorage.removeItem('streamlineHqWebUser');$('#dashboard-view')?.classList.remove('active');if($('#login-view'))$('#login-view').style.display='';closeLead()}
+async function login(id,pin){const p=await api('/hq-auth/login',{method:'POST',body:JSON.stringify({loginId:id,pin})});if(!p.accessToken||!p.user)throw Error('Cloud did not return a valid HQ session.');token=p.accessToken;user=p.user;sessionStorage.setItem('streamlineHqWebToken',token);sessionStorage.setItem('streamlineHqWebUser',JSON.stringify(user));await openDashboard()}
+function assignee(id){if(!id)return'Unassigned';const u=data?.assignableUsers?.find(x=>String(x.userId)===String(id));return u?.displayName||u?.loginId||'Assigned user'}
+function pool(){const m=new Map();[...(data?.leads||[]),...(data?.todayLeads||[]),...(data?.newWebLeads||[])].forEach(l=>m.set(String(l.id),l));return[...m.values()]}
+function rowsFor(filter=activeFilter){let rows=pool();if(!data?.manager)rows=data?.todayLeads||[];if(filter==='new-web')rows=data?.manager?(data.newWebLeads||[]):rows.filter(l=>l.source==='website'&&l.status==='new');if(filter==='today')rows=data?.todayLeads||[];if(filter==='unassigned')rows=rows.filter(l=>!l.assigned_user_id);if(filter==='open')rows=rows.filter(l=>!closed(l.status));const q=String($('#lead-search')?.value||'').trim().toLowerCase();if(q&&filter===activeFilter)rows=rows.filter(l=>[l.business_name,l.contact_name,l.email,l.phone,l.business_address,l.business_city,l.business_state,l.business_postal_code,l.source,l.status,assignee(l.assigned_user_id)].some(v=>String(v||'').toLowerCase().includes(q)));return rows}
+function leadRow(l,compact=false){const b=document.createElement('button');b.type='button';b.className=compact?'mini-lead-row':'lead-row lead-row-v2';b.dataset.leadId=l.id;b.setAttribute('aria-label',`Open ${l.business_name||l.contact_name||'lead'}`);if(compact)b.innerHTML=`<div><strong>${esc(l.business_name||l.contact_name||'Unnamed lead')}</strong><span>${esc(locationLine(l))}</span></div><span class="status-pill status-${esc(String(l.status||'new').toLowerCase())}">${esc(pretty(l.status))}</span><b>›</b>`;else b.innerHTML=`<div class="lead-name"><strong>${esc(l.business_name||l.contact_name||'Unnamed lead')}</strong><span>${esc(l.contact_name||'No contact name')}</span></div><div class="lead-cell"><strong>${esc(locationLine(l))}</strong><span>${esc(l.business_address||'No street address')}</span></div><div class="lead-cell"><strong>${esc(l.phone||l.email||'No contact info')}</strong><span>${esc(l.email||'')}</span></div><div class="lead-cell"><strong>${esc(assignee(l.assigned_user_id))}</strong><span>${l.assigned_user_id?'Assigned':'Needs assignment'}</span></div><div><span class="status-pill status-${esc(String(l.status||'new').toLowerCase())}">${esc(pretty(l.status))}</span><span class="row-open">Open ›</span></div>`;return b}
+function fillList(el,rows,compact=false){if(!el)return;el.innerHTML='';if(!rows.length){el.innerHTML='<div class="empty-state"><strong>Nothing here right now.</strong><span>No leads match this view.</span></div>';return}rows.forEach(l=>el.appendChild(leadRow(l,compact)))}
+function render(){fillList($('#lead-list'),rowsFor());fillList($('#web-lead-list'),data?.manager?(data?.newWebLeads||[]):[],false);fillList($('#priority-list'),(data?.manager?(data?.newWebLeads||[]):rowsFor('today')).slice(0,6),true)}
+function renderNotifications(){const html=notifications.length?notifications.slice(0,20).map(n=>`<div class="notification-row"><span class="notification-icon">${n.kind==='web_lead'?'↗':'•'}</span><div><strong>${esc(n.title||pretty(n.kind))}</strong><p>${esc(n.body||'')}</p><small>${fmt(n.createdAt||n.created_at)}</small></div></div>`).join(''):'<div class="empty-state"><strong>No recent notifications.</strong><span>Your Cloud notifications will appear here.</span></div>';if($('#notification-list'))$('#notification-list').innerHTML=html;if($('#activity-list'))$('#activity-list').innerHTML=html}
+async function loadAll(){clear($('#dashboard-error'));$('#cloud-state')?.classList.add('loading');try{const dash=await api('/hq/web-dashboard');data=dash.dashboard||{};const tasks=[api('/hq/notifications').catch(()=>({notifications:[]})),api('/hq/analytics/dashboard').catch(()=>({metrics:null}))];const [np,ap]=await Promise.all(tasks);notifications=np.notifications||[];analytics=ap.metrics||null;$('#kpi-a').textContent=data.manager?(data.newWebLeads?.length||0):(data.todayLeads?.length||0);$('#kpi-b').textContent=data.todayLeads?.length||0;$('#kpi-c').textContent=data.openLeads||0;$('#kpi-d').textContent=analytics?.leads?.won??'—';$('#lead-title').textContent=data.manager?'Team lead pipeline':"Today's leads";$('#lead-subtitle').textContent=data.manager?'Review, assign, schedule and update leads from Cloud.':'Review your active leads and consultations.';$('#lead-filter option[value="unassigned"]')?.toggleAttribute('hidden',!data.manager);render();renderNotifications();if(activeLeadId&&$('#lead-modal')?.classList.contains('open'))await openLead(activeLeadId,true)}catch(e){err($('#dashboard-error'),e.message)}finally{$('#cloud-state')?.classList.remove('loading')}}
+function showSection(name){$$('.admin-section').forEach(x=>x.classList.toggle('active',x.id===`section-${name}`));$$('.admin-nav-item[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const labels={overview:'Overview',leads:'Lead Pipeline',web:'Web Lead Queue',activity:'Activity'};$('#workspace-title').textContent=labels[name]||'Admin'}
+function productTags(v){return Array.isArray(v)&&v.length?`<div class="detail-tags">${v.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:'<span class="muted">None specified</span>'}
+function assignmentControl(l){if(!data?.manager)return`<div class="detail-value">${esc(assignee(l.assigned_user_id))}</div>`;return`<div class="assignment-editor"><select id="detail-assignee" class="admin-select"><option value="">Select a team member…</option>${(data.assignableUsers||[]).map(u=>`<option value="${esc(u.userId)}" ${String(u.userId)===String(l.assigned_user_id)?'selected':''}>${esc(u.displayName||u.loginId)}${u.role?` · ${esc(pretty(u.role))}`:''}</option>`).join('')}</select><button id="assign-lead-btn" class="admin-btn primary-small" type="button">${l.assigned_user_id?'Reassign':'Assign lead'}</button></div>`}
+function quoteList(q){return Array.isArray(q)&&q.length?`<div class="quote-mini-list">${q.map(x=>`<div class="quote-mini"><div><strong>${esc(x.quote_number||'Quote')}</strong><span>${fmt(x.created_at,false)}</span></div><div><strong>$${Number(x.total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong><span>${esc(pretty(x.status))}</span></div></div>`).join('')}</div>`:'<div class="detail-empty">No quotes created yet.</div>'}
+function timeline(ev){return Array.isArray(ev)&&ev.length?`<div class="lead-timeline">${ev.slice().reverse().map(x=>`<div class="timeline-item"><span class="timeline-dot"></span><div><strong>${esc(pretty(x.event_type||'update'))}</strong><p>${fmt(x.created_at)}</p></div></div>`).join('')}</div>`:'<div class="detail-empty">No activity recorded yet.</div>'}
+async function openLead(id,refresh=false){activeLeadId=id;const modal=$('#lead-modal');if(!modal)return;if(!refresh){modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('drawer-open');$('#lead-detail-body').innerHTML='<div class="empty-state">Loading lead…</div>'}try{const p=await api(`/hq/leads/${encodeURIComponent(id)}`),l=p.lead;$('#lead-detail-title').textContent=l.business_name||l.contact_name||'Lead';$('#lead-detail-subtitle').textContent=`${l.contact_name||'No contact name'} · ${pretty(l.status)}`;$('#lead-detail-body').innerHTML=`
+<div id="lead-detail-error" class="admin-error"></div>
+<div class="detail-actions">${l.phone?`<a class="detail-action" href="tel:${esc(l.phone)}">Call ${esc(l.phone)}</a>`:''}${l.email?`<a class="detail-action" href="mailto:${esc(l.email)}">Email lead</a>`:''}${l.business_address?`<a class="detail-action secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([l.business_address,l.business_city,l.business_state,l.business_postal_code].filter(Boolean).join(' '))}">Map business</a>`:''}</div>
+<div class="detail-section"><div class="detail-section-title"><h3>Contact & business</h3>${data?.manager?'<button id="save-basic-btn" class="text-button" type="button">Save changes</button>':''}</div><div class="detail-edit-grid">
+<label><span>Contact name</span><input id="edit-contact" value="${esc(l.contact_name||'')}"></label><label><span>Business</span><input id="edit-business" value="${esc(l.business_name||'')}"></label><label><span>Email</span><input id="edit-email" type="email" value="${esc(l.email||'')}"></label><label><span>Phone</span><input id="edit-phone" value="${esc(l.phone||'')}"></label><label class="wide"><span>Street address</span><input id="edit-address" value="${esc(l.business_address||'')}"></label><label><span>City</span><input id="edit-city" value="${esc(l.business_city||'')}"></label><label><span>State</span><input id="edit-state" maxlength="2" value="${esc(l.business_state||'')}"></label><label><span>ZIP</span><input id="edit-zip" value="${esc(l.business_postal_code||'')}"></label><label><span>Status</span><select id="edit-status" class="admin-select">${['new','assigned','consultation_scheduled','consultation_started','quoted','won','lost','closed','nurture','disqualified'].map(s=>`<option value="${s}" ${s===l.status?'selected':''}>${pretty(s)}</option>`).join('')}</select></label></div></div>
+<div class="detail-section"><h3>Assignment</h3>${assignmentControl(l)}<div class="detail-grid compact"><div><span>Assigned</span><strong>${fmt(l.assigned_at)}</strong></div><div><span>Consultation due</span><strong>${fmt(l.consultation_due_at)}</strong></div><div><span>Consultation</span><strong>${fmt(l.consultation_at)}</strong></div><div><span>Created</span><strong>${fmt(l.created_at)}</strong></div></div></div>
+<div class="detail-section"><div class="detail-section-title"><h3>Consultation</h3></div><div class="quick-action-row"><input id="consult-at" type="datetime-local"><button id="schedule-btn" class="admin-btn primary-small" type="button">Schedule</button></div></div>
+<div class="detail-section"><h3>Requested products</h3>${productTags(l.requested_products)}</div>
+<div class="detail-section"><h3>Customer message</h3><div class="detail-message">${l.message?esc(l.message):'<span class="muted">No message provided.</span>'}</div></div>
+<div class="detail-section"><div class="detail-section-title"><h3>Internal note</h3></div><textarea id="new-note" class="admin-note-box" placeholder="Add a note visible in HQ…"></textarea><button id="add-note-btn" class="admin-btn" type="button">Add note</button>${Array.isArray(l.notes)&&l.notes.length?`<div class="detail-notes" style="margin-top:12px">${l.notes.slice().reverse().map(n=>`<div><p>${esc(n.text||'')}</p><span>${fmt(n.at)}</span></div>`).join('')}</div>`:''}</div>
+<div class="detail-section"><h3>Quotes</h3>${quoteList(p.quotes)}</div><div class="detail-section"><h3>Activity</h3>${timeline(p.events)}</div>`;
+$('#assign-lead-btn')?.addEventListener('click',()=>assignLead(l.id));$('#save-basic-btn')?.addEventListener('click',()=>saveBasic(l.id));$('#schedule-btn')?.addEventListener('click',()=>schedule(l.id));$('#add-note-btn')?.addEventListener('click',()=>addNote(l.id));
+}catch(e){$('#lead-detail-body').innerHTML=`<div class="admin-error" style="display:block">${esc(e.message)}</div>`}}
+async function assignLead(id){const uid=$('#detail-assignee')?.value;if(!uid)return err($('#lead-detail-error'),'Choose a team member first.');try{await api(`/hq/leads/${encodeURIComponent(id)}/assign`,{method:'POST',body:JSON.stringify({userId:uid})});await loadAll();await openLead(id,true)}catch(e){err($('#lead-detail-error'),e.message)}}
+async function saveBasic(id){const body={contactName:$('#edit-contact').value.trim(),businessName:$('#edit-business').value.trim(),email:$('#edit-email').value.trim()||null,phone:$('#edit-phone').value.trim()||null,businessAddress:$('#edit-address').value.trim()||null,businessCity:$('#edit-city').value.trim()||null,businessState:$('#edit-state').value.trim().toUpperCase()||null,businessPostalCode:$('#edit-zip').value.trim()||null,status:$('#edit-status').value};try{await api(`/hq/leads/${encodeURIComponent(id)}/basic`,{method:'PATCH',body:JSON.stringify(body)});await loadAll();await openLead(id,true)}catch(e){err($('#lead-detail-error'),e.message)}}
+async function schedule(id){const v=$('#consult-at')?.value;if(!v)return err($('#lead-detail-error'),'Choose a consultation date and time.');try{await api(`/hq/leads/${encodeURIComponent(id)}/consultation`,{method:'POST',body:JSON.stringify({startsAt:new Date(v).toISOString()})});await loadAll();await openLead(id,true)}catch(e){err($('#lead-detail-error'),e.message)}}
+async function addNote(id){const note=$('#new-note')?.value.trim();if(!note)return;try{await api(`/hq/leads/${encodeURIComponent(id)}/opportunity`,{method:'PATCH',body:JSON.stringify({note})});await loadAll();await openLead(id,true)}catch(e){err($('#lead-detail-error'),e.message)}}
+function closeLead(){activeLeadId=null;$('#lead-modal')?.classList.remove('open');$('#lead-modal')?.setAttribute('aria-hidden','true');document.body.classList.remove('drawer-open')}
+async function openDashboard(){try{if(!user){const s=sessionStorage.getItem('streamlineHqWebUser');if(s)try{user=JSON.parse(s)}catch{}}if(!user)user=(await api('/hq-auth/me')).user;$('#login-view').style.display='none';$('#dashboard-view').classList.add('active');$('#admin-greeting').textContent=`${user.displayName||user.loginId} · ${pretty(user.role||'staff')}`;$('#sidebar-user').innerHTML=`<strong>${esc(user.displayName||user.loginId)}</strong><span>${esc(pretty(user.role||'staff'))}</span>`;await loadAll()}catch(e){logout();err($('#login-error'),e.message)}}
+async function submitLogin(){clear($('#login-error'));const id=$('#hq-login-id').value.trim(),pin=$('#hq-pin').value;$('#hq-pin').value='';if(!id||!/^\d{4}$/.test(pin))return err($('#login-error'),'Enter your HQ Login ID and 4-digit PIN.');const b=$('#login-submit');b.disabled=true;b.textContent='Signing in…';try{await login(id,pin)}catch(e){err($('#login-error'),e.message)}finally{b.disabled=false;b.textContent='Sign in securely'}}
+$('#login-submit')?.addEventListener('click',submitLogin);['#hq-login-id','#hq-pin'].forEach(s=>$(s)?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitLogin()}}));$('#logout-btn')?.addEventListener('click',logout);$('#refresh-btn')?.addEventListener('click',loadAll);$('#lead-search')?.addEventListener('input',render);$('#lead-filter')?.addEventListener('change',e=>{activeFilter=e.target.value;render()});
+$$('.admin-nav-item[data-section]').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.section)));$$('[data-open-section]').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.openSection)));$$('.kpi-button').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter||'all';if($('#lead-filter'))$('#lead-filter').value=activeFilter;showSection(b.dataset.jump||'leads');render()}));
+['#lead-list','#web-lead-list','#priority-list'].forEach(sel=>$(sel)?.addEventListener('click',e=>{const row=e.target.closest('[data-lead-id]');if(row)openLead(row.dataset.leadId)}));$('#lead-modal-close')?.addEventListener('click',closeLead);$('[data-close-modal]')?.addEventListener('click',closeLead);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLead()});
+if(token)openDashboard();
 })();

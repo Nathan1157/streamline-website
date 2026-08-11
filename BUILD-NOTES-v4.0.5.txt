@@ -1,0 +1,8 @@
+Streamline Luxury Website v4.0.5
+- Consultation form now requires business street address, city, state, ZIP, email, and phone.
+- Phone is live-formatted and validated as (###) ###-####; email/state/ZIP are validated before submission.
+- New polished confirmation dialog promises follow-up within 24 hours.
+- Admin portal rebuilt as a Mini-HQ workspace with Overview, Leads, Web Queue, Activity, Cloud KPIs, notifications, assignment, lead editing, consultation scheduling, notes, quotes, and activity timeline.
+- Lead rows use delegated click handling and explicit Open affordances for reliable drill-in.
+- Business address is displayed and searchable in admin, with direct map lookup.
+- HTTPS redirect + mixed-content CSP remain enabled on public pages and admin.

@@ -4,67 +4,89 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; connect-src 'self' https://api.streamlinebusinessos.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self'; font-src 'self' data:; form-action 'self'; base-uri 'self'; upgrade-insecure-requests; block-all-mixed-content">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="referrer" content="no-referrer">
   <title>Admin Portal | Streamline Business Solutions</title>
-  <meta name="description" content="Secure Streamline web admin portal.">
+  <meta name="description" content="Secure Streamline Cloud admin portal.">
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="admin-body">
   <div class="grain" aria-hidden="true"></div>
-  <div class="cursor-glow" aria-hidden="true"></div>
-  <header class="site-nav">
-    <a class="nav-brand" href="/" aria-label="Streamline Business Solutions home"><img class="nav-company-logo" src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions"></a>
-    <nav class="nav-links" aria-label="Primary navigation"><a href="/products">Products</a><a href="/core">Core</a><a href="/about">About</a><a href="/custom">Custom Software</a><a href="/support">Support</a></nav>
-    <div class="nav-actions"><a class="nav-cta" href="/contact">Book a consultation</a><button class="mobile-menu" aria-label="Open menu" type="button">☰</button></div>
-  </header>
-
-  <main class="admin-page">
-    <div class="admin-shell">
-      <section id="login-view" class="admin-login">
-        <div class="admin-login-badge">SECURE CLOUD ACCESS</div>
-        <img src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions">
-        <h1>Admin Portal</h1>
-        <p>Use the same HQ Login ID and 4-digit PIN you use in Streamline HQ.</p>
-        <div id="login-form" role="form" aria-label="HQ admin login">
-          <div class="field"><label>HQ LOGIN ID</label><input id="hq-login-id" required autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></div>
-          <div class="field" style="margin-top:12px"><label>4-DIGIT HQ PIN</label><input id="hq-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required autocomplete="current-password"></div>
-          <button id="login-submit" class="button primary" style="width:100%;margin-top:18px" type="button">Sign in securely</button>
-          <div id="login-error" class="admin-error"></div>
+  <main class="admin-page admin-page-v2">
+    <div class="admin-shell admin-shell-v2">
+      <section id="login-view" class="admin-login admin-login-v2">
+        <div class="admin-login-visual"><img src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions"><span>Secure Cloud Workspace</span></div>
+        <div class="admin-login-content">
+          <div class="admin-login-badge">STREAMLINE HQ ACCESS</div>
+          <h1>Welcome back.</h1>
+          <p>Sign in with your existing HQ Login ID and 4-digit PIN.</p>
+          <div id="login-form" role="form" aria-label="HQ admin login">
+            <div class="field"><label for="hq-login-id">HQ LOGIN ID</label><input id="hq-login-id" required autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></div>
+            <div class="field" style="margin-top:12px"><label for="hq-pin">4-DIGIT HQ PIN</label><input id="hq-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required autocomplete="current-password"></div>
+            <button id="login-submit" class="button primary" style="width:100%;margin-top:18px" type="button">Sign in securely</button>
+            <div id="login-error" class="admin-error"></div>
+          </div>
         </div>
       </section>
 
-      <section id="dashboard-view" class="admin-dashboard">
-        <div class="admin-top">
-          <div class="admin-title"><span class="admin-eyebrow">STREAMLINE CLOUD</span><h1>Lead Command Center</h1><p id="admin-greeting">Cloud-connected lead management</p></div>
-          <div class="admin-actions"><button id="refresh-btn" class="admin-btn">↻ Refresh</button><button id="logout-btn" class="admin-btn">Sign out</button></div>
-        </div>
+      <section id="dashboard-view" class="admin-dashboard admin-dashboard-v2">
+        <aside class="admin-sidebar">
+          <div class="admin-sidebar-brand"><img src="/assets/streamline-main-logo-nav.png" alt="Streamline"><span>ADMIN</span></div>
+          <nav class="admin-nav" aria-label="Admin portal">
+            <button class="admin-nav-item active" data-section="overview" type="button"><span>⌂</span>Overview</button>
+            <button class="admin-nav-item" data-section="leads" type="button"><span>◎</span>Leads</button>
+            <button class="admin-nav-item" data-section="web" type="button"><span>↗</span>Web Queue</button>
+            <button class="admin-nav-item" data-section="activity" type="button"><span>◷</span>Activity</button>
+          </nav>
+          <div class="admin-sidebar-foot"><div id="sidebar-user" class="sidebar-user"></div><button id="logout-btn" class="admin-nav-item logout" type="button"><span>↪</span>Sign out</button></div>
+        </aside>
 
-        <div class="admin-kpis">
-          <button class="kpi kpi-button" data-filter="new-web"><span id="kpi-a-label">New web leads</span><strong id="kpi-a">—</strong><small>Needs attention</small></button>
-          <button class="kpi kpi-button" data-filter="today"><span id="kpi-b-label">Today's leads</span><strong id="kpi-b">—</strong><small>Scheduled / created today</small></button>
-          <button class="kpi kpi-button" data-filter="all"><span id="kpi-c-label">Open leads</span><strong id="kpi-c">—</strong><small>Active pipeline</small></button>
-        </div>
+        <div class="admin-workspace">
+          <header class="admin-workspace-top">
+            <div><p class="admin-eyebrow">STREAMLINE CLOUD</p><h1 id="workspace-title">Overview</h1><p id="admin-greeting">Cloud-connected operations</p></div>
+            <div class="admin-actions"><span id="cloud-state" class="cloud-state"><i></i>Live</span><button id="refresh-btn" class="admin-btn" type="button">↻ Refresh</button></div>
+          </header>
 
-        <div class="admin-panel lead-panel">
-          <div class="admin-panel-head admin-panel-head-rich">
-            <div><span class="admin-eyebrow dark">LEAD PIPELINE</span><h2 id="lead-title">Leads</h2><p id="lead-subtitle">Live from Streamline Cloud</p></div>
-            <div class="lead-tools"><label class="lead-search"><span>⌕</span><input id="lead-search" type="search" placeholder="Search leads…" autocomplete="off"></label><select id="lead-filter" class="admin-select"><option value="all">All accessible</option><option value="new-web">New web leads</option><option value="today">Today</option><option value="unassigned">Unassigned</option></select></div>
-          </div>
-          <div class="lead-table-head"><span>Lead</span><span>Contact</span><span>Activity</span><span>Assignment</span><span>Status</span></div>
-          <div id="lead-list" class="lead-list"><div class="empty-state">Loading…</div></div>
+          <section id="section-overview" class="admin-section active">
+            <div class="admin-kpis admin-kpis-v2">
+              <button class="kpi kpi-button" data-filter="new-web" data-jump="leads"><span>New web leads</span><strong id="kpi-a">—</strong><small>Needs attention</small></button>
+              <button class="kpi kpi-button" data-filter="today" data-jump="leads"><span>Today's leads</span><strong id="kpi-b">—</strong><small>Team activity today</small></button>
+              <button class="kpi kpi-button" data-filter="open" data-jump="leads"><span>Open pipeline</span><strong id="kpi-c">—</strong><small>Active opportunities</small></button>
+              <div class="kpi"><span>Won leads</span><strong id="kpi-d">—</strong><small>Cloud analytics</small></div>
+            </div>
+            <div class="overview-grid">
+              <div class="admin-panel"><div class="admin-panel-head"><div><span class="admin-eyebrow dark">PRIORITY</span><h2>Needs attention</h2></div><button class="text-button" data-open-section="leads">View pipeline</button></div><div id="priority-list" class="mini-lead-list"><div class="empty-state">Loading…</div></div></div>
+              <div class="admin-panel"><div class="admin-panel-head"><div><span class="admin-eyebrow dark">CLOUD ACTIVITY</span><h2>Recent notifications</h2></div></div><div id="notification-list" class="notification-list"><div class="empty-state">Loading…</div></div></div>
+            </div>
+          </section>
+
+          <section id="section-leads" class="admin-section">
+            <div class="admin-panel lead-panel">
+              <div class="admin-panel-head admin-panel-head-rich">
+                <div><span class="admin-eyebrow dark">LEAD PIPELINE</span><h2 id="lead-title">Leads</h2><p id="lead-subtitle">Live from Streamline Cloud</p></div>
+                <div class="lead-tools"><label class="lead-search"><span>⌕</span><input id="lead-search" type="search" placeholder="Search name, business, city, ZIP…" autocomplete="off"></label><select id="lead-filter" class="admin-select"><option value="all">All accessible</option><option value="new-web">New web leads</option><option value="today">Today</option><option value="open">Open</option><option value="unassigned">Unassigned</option></select></div>
+              </div>
+              <div class="lead-table-head"><span>Lead</span><span>Location</span><span>Contact</span><span>Assignment</span><span>Status</span></div>
+              <div id="lead-list" class="lead-list"><div class="empty-state">Loading…</div></div>
+            </div>
+          </section>
+
+          <section id="section-web" class="admin-section">
+            <div class="admin-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">WEBSITE INTAKE</span><h2>Unassigned web leads</h2><p>Review location and fit before assigning to the sales team.</p></div></div><div id="web-lead-list" class="lead-list"><div class="empty-state">Loading…</div></div></div>
+          </section>
+
+          <section id="section-activity" class="admin-section">
+            <div class="admin-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">RECENT ACTIVITY</span><h2>Cloud notifications</h2><p>Events and reminders currently available to your HQ account.</p></div></div><div id="activity-list" class="notification-list"><div class="empty-state">Loading…</div></div></div>
+          </section>
+          <div id="dashboard-error" class="admin-error"></div>
         </div>
-        <div id="dashboard-error" class="admin-error"></div>
       </section>
     </div>
   </main>
 
   <div id="lead-modal" class="lead-modal" aria-hidden="true">
     <div class="lead-modal-backdrop" data-close-modal></div>
-    <section class="lead-drawer" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title">
-      <div class="lead-drawer-head">
-        <div><span class="admin-eyebrow dark">LEAD DETAILS</span><h2 id="lead-detail-title">Lead</h2><p id="lead-detail-subtitle">Loading…</p></div>
-        <button id="lead-modal-close" class="drawer-close" type="button" aria-label="Close lead details">×</button>
-      </div>
+    <section class="lead-drawer lead-drawer-v2" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title">
+      <div class="lead-drawer-head"><div><span class="admin-eyebrow dark">LEAD WORKSPACE</span><h2 id="lead-detail-title">Lead</h2><p id="lead-detail-subtitle">Loading…</p></div><button id="lead-modal-close" class="drawer-close" type="button" aria-label="Close lead details">×</button></div>
       <div id="lead-detail-body" class="lead-detail-body"><div class="empty-state">Loading lead…</div></div>
     </section>
   </div>
