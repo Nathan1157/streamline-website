@@ -35,6 +35,7 @@
             <button class="admin-nav-item active" data-section="overview" type="button"><span>⌂</span>Overview</button>
             <button class="admin-nav-item" data-section="leads" type="button"><span>◎</span>Leads</button>
             <button class="admin-nav-item" data-section="web" type="button"><span>↗</span>Web Queue</button>
+            <button id="complaints-nav" class="admin-nav-item" data-section="complaints" type="button"><span>!</span>Complaints</button>
             <button class="admin-nav-item" data-section="activity" type="button"><span>◷</span>Activity</button>
           </nav>
           <div class="admin-sidebar-foot"><div id="sidebar-user" class="sidebar-user"></div><button id="logout-btn" class="admin-nav-item logout" type="button"><span>↪</span>Sign out</button></div>
@@ -43,7 +44,7 @@
         <div class="admin-workspace">
           <header class="admin-workspace-top">
             <div><p class="admin-eyebrow">STREAMLINE CLOUD</p><h1 id="workspace-title">Overview</h1><p id="admin-greeting">Cloud-connected operations</p></div>
-            <div class="admin-actions"><button id="add-lead-btn" class="admin-btn admin-btn-primary" type="button">＋ Add lead</button><span id="cloud-state" class="cloud-state"><i></i>Live</span><button id="refresh-btn" class="admin-btn" type="button">↻ Refresh</button></div>
+            <div class="admin-actions"><button id="quick-log-complaint" class="admin-btn" type="button">Log complaint</button><button id="add-lead-btn" class="admin-btn admin-btn-primary" type="button">＋ Add lead</button><span id="cloud-state" class="cloud-state"><i></i>Live</span><button id="refresh-btn" class="admin-btn" type="button">↻ Refresh</button></div>
           </header>
 
           <section id="section-overview" class="admin-section active">
@@ -74,6 +75,12 @@
             <div class="admin-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">WEBSITE INTAKE</span><h2>Unassigned web leads</h2><p>Review location and fit before assigning to the sales team.</p></div></div><div id="web-lead-list" class="lead-list"><div class="empty-state">Loading…</div></div></div>
           </section>
 
+
+          <section id="section-complaints" class="admin-section">
+            <div class="section-head"><div><span class="admin-eyebrow dark">CUSTOMER CARE</span><h2>Complaint Command Center</h2><p>Permission-based complaint handling from anywhere, with live SLA clocks and escalation.</p></div><button id="web-log-complaint" class="admin-btn primary-small" type="button">Log complaint</button></div>
+            <div id="complaint-kpis" class="admin-kpis admin-kpis-v2 complaint-web-kpis"></div><div id="complaint-web-insights" class="complaint-web-insights"></div>
+            <div class="complaint-web-shell"><div class="surface-panel"><div class="panel-head"><div><strong>Case queue</strong><span>Highest escalation first</span></div><select id="complaint-web-filter" class="admin-select"><option value="active">Active</option><option value="sla">SLA misses</option><option value="escalated">Escalated</option><option value="resolved">Resolved / closed</option><option value="all">All</option></select></div><div id="complaint-web-list" class="complaint-web-list"></div></div><div id="complaint-web-detail" class="surface-panel complaint-web-detail"><div class="empty-state"><strong>Select a complaint</strong><span>Open a case to manage ownership, contact, escalation, resolution, and history.</span></div></div></div>
+          </section>
           <section id="section-activity" class="admin-section">
             <div class="admin-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">RECENT ACTIVITY</span><h2>Cloud notifications</h2><p>Events and reminders currently available to your HQ account.</p></div></div><div id="activity-list" class="notification-list"><div class="empty-state">Loading…</div></div></div>
           </section>
@@ -118,6 +125,8 @@
   </div>
 
   <script src="/script.js"></script>
+
+  <div id="complaint-entry-modal" class="lead-modal" aria-hidden="true"><div class="lead-modal-backdrop" data-close-complaint-entry></div><section class="complaint-entry-dialog" role="dialog"><div class="lead-drawer-head"><div><span class="admin-eyebrow dark">CUSTOMER COMPLAINT</span><h2>Log a complaint</h2><p>The 12-hour first-contact and 3-day resolution clocks begin immediately.</p></div><button id="complaint-entry-close" class="drawer-close" type="button">×</button></div><div class="complaint-entry-body"><div id="complaint-entry-error" class="admin-error"></div><div class="complaint-entry-grid"><label>Business<input id="wc-business"></label><label>Contact name<input id="wc-contact"></label><label>Email<input id="wc-email" type="email"></label><label>Phone<input id="wc-phone"></label><label>Category<select id="wc-category"><option>Service</option><option>Sales</option><option>Installation</option><option>Billing</option><option>Software</option><option>Support</option><option>Employee conduct</option><option>Refund / cancellation</option><option>Other</option></select></label><label>Severity<select id="wc-severity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select></label><label class="wide">Subject<input id="wc-subject"></label><label class="wide">Complaint details<textarea id="wc-description"></textarea></label></div><div class="manual-lead-actions"><button id="wc-cancel" class="admin-btn" type="button">Cancel</button><button id="wc-submit" class="admin-btn primary-small" type="button">Log complaint</button></div></div></section></div>
   <script src="/admin/admin.js"></script>
 </body>
 </html>
