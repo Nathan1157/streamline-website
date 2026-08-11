@@ -18,12 +18,13 @@
         <div class="admin-login-content">
           <div class="admin-login-badge">STREAMLINE HQ ACCESS</div>
           <h1>Welcome back.</h1>
-          <p>Sign in with your existing HQ Login ID and 4-digit PIN.</p>
+          <p>Sign in with your HQ Login ID and strong password. Your 4-digit PIN is reserved for quick approvals inside HQ.</p>
           <div id="login-form" role="form" aria-label="HQ admin login">
             <div class="field"><label for="hq-login-id">HQ LOGIN ID</label><input id="hq-login-id" required autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></div>
-            <div class="field" style="margin-top:12px"><label for="hq-pin">4-DIGIT HQ PIN</label><input id="hq-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required autocomplete="current-password"></div>
+            <div class="field" style="margin-top:12px"><label for="hq-password">HQ PASSWORD</label><input id="hq-password" type="password" minlength="12" required autocomplete="current-password"></div>
             <button id="login-submit" class="button primary" style="width:100%;margin-top:18px" type="button">Sign in securely</button>
             <div id="login-error" class="admin-error"></div>
+            <div id="password-reset-box" class="first-password-box" hidden><strong>Set your private password</strong><p>0000 is only a temporary first-login password. Choose a secure password before continuing.</p><div class="field"><label>NEW PASSWORD</label><input id="new-hq-password" type="password" minlength="12" autocomplete="new-password"></div><div class="field" style="margin-top:10px"><label>CONFIRM PASSWORD</label><input id="confirm-hq-password" type="password" minlength="12" autocomplete="new-password"></div><button id="password-reset-submit" class="button primary" style="width:100%;margin-top:14px" type="button">Set password & continue</button><div id="password-reset-error" class="admin-error"></div></div>
           </div>
         </div>
       </section>
@@ -33,9 +34,12 @@
           <div class="admin-sidebar-brand"><img src="/assets/streamline-main-logo-nav.png" alt="Streamline"><span>ADMIN</span></div>
           <nav class="admin-nav" aria-label="Admin portal">
             <button class="admin-nav-item active" data-section="overview" type="button"><span>⌂</span>Overview</button>
+            <button class="admin-nav-item" data-section="today" type="button"><span>◷</span>Today</button>
             <button class="admin-nav-item" data-section="leads" type="button"><span>◎</span>Leads</button>
+            <button class="admin-nav-item" data-section="customers" type="button"><span>◆</span>Customers</button>
             <button class="admin-nav-item" data-section="web" type="button"><span>↗</span>Web Queue</button>
             <button id="complaints-nav" class="admin-nav-item" data-section="complaints" type="button"><span>!</span>Complaints</button>
+            <button id="tax-nav" class="admin-nav-item" data-section="tax" type="button"><span>$</span>Tax & Receipts</button>
             <button class="admin-nav-item" data-section="activity" type="button"><span>◷</span>Activity</button>
           </nav>
           <div class="admin-sidebar-foot"><div id="sidebar-user" class="sidebar-user"></div><button id="logout-btn" class="admin-nav-item logout" type="button"><span>↪</span>Sign out</button></div>
@@ -60,6 +64,16 @@
             </div>
           </section>
 
+
+          <section id="section-today" class="admin-section">
+            <div class="section-head"><div><span class="admin-eyebrow dark">TODAY · SCHEDULE</span><h2>Today's Leads</h2><p>Your consultation schedule in chronological order, with direct contact information.</p></div></div>
+            <div class="admin-panel"><div id="today-schedule" class="today-schedule"><div class="empty-state">Loading…</div></div></div>
+          </section>
+
+          <section id="section-customers" class="admin-section">
+            <div class="admin-panel lead-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">CUSTOMER BOOK</span><h2>Customers</h2><p>Sold accounts are kept separate from active prospects and leads.</p></div><label class="lead-search"><span>⌕</span><input id="customer-search" type="search" placeholder="Search customer, contact, phone, email…" autocomplete="off"></label></div><div class="customer-table-head"><span>Customer</span><span>Contact</span><span>Location</span><span>Status</span></div><div id="customer-list" class="customer-list"><div class="empty-state">Loading…</div></div></div>
+          </section>
+
           <section id="section-leads" class="admin-section">
             <div class="admin-panel lead-panel">
               <div class="admin-panel-head admin-panel-head-rich">
@@ -81,6 +95,24 @@
             <div id="complaint-kpis" class="admin-kpis admin-kpis-v2 complaint-web-kpis"></div><div id="complaint-web-insights" class="complaint-web-insights"></div>
             <div class="complaint-web-shell"><div class="surface-panel"><div class="panel-head"><div><strong>Case queue</strong><span>Highest escalation first</span></div><select id="complaint-web-filter" class="admin-select"><option value="active">Active</option><option value="sla">SLA misses</option><option value="escalated">Escalated</option><option value="resolved">Resolved / closed</option><option value="all">All</option></select></div><div id="complaint-web-list" class="complaint-web-list"></div></div><div id="complaint-web-detail" class="surface-panel complaint-web-detail"><div class="empty-state"><strong>Select a complaint</strong><span>Open a case to manage ownership, contact, escalation, resolution, and history.</span></div></div></div>
           </section>
+          <section id="section-tax" class="admin-section">
+            <div class="section-head"><div><span class="admin-eyebrow dark">FINANCE · TAX READINESS</span><h2>Tax & Receipt Inbox</h2><p>Log business expenses from anywhere. Receipt files are relayed live to the encrypted vault on the HQ computer and are not retained by Cloud.</p></div><span id="vault-web-state" class="cloud-state"><i></i>Checking HQ vault…</span></div>
+            <div id="tax-web-kpis" class="admin-kpis admin-kpis-v2"></div>
+            <div class="tax-web-grid">
+              <div class="admin-panel"><div class="admin-panel-head"><div><span class="admin-eyebrow dark">NEW EXPENSE</span><h2>Upload receipt</h2></div></div><div class="tax-web-form">
+                <label>Date<input id="tax-date" type="date"></label>
+                <label>Amount<input id="tax-amount" type="number" min="0" step="0.01" placeholder="0.00"></label>
+                <label>Category<select id="tax-category"><option>Office expense</option><option>Gas / mileage</option><option>Software / subscriptions</option><option>Advertising</option><option>Insurance</option><option>Professional services</option><option>Meals</option><option>Equipment</option><option>Home office</option><option>Travel</option><option>Other</option></select></label>
+                <label>Tax treatment<select id="tax-deductibility"><option value="likely">Likely deductible</option><option value="partial">Potentially partial</option><option value="review">Needs tax-professional review</option><option value="non_deductible">Non-deductible / personal</option></select></label>
+                <label class="wide">Business purpose<textarea id="tax-description" placeholder="What was this purchase for?"></textarea></label>
+                <label class="wide">Receipt / invoice<input id="tax-file" type="file" accept="image/*,.pdf,application/pdf"><small>Temporary local-vault mode: HQ must be open and signed in for remote file uploads. 10 MB max.</small></label>
+                <div id="tax-web-error" class="admin-error wide"></div>
+                <button id="tax-submit" type="button" class="admin-btn admin-btn-primary wide">Save expense & receipt</button>
+              </div></div>
+              <div class="admin-panel"><div class="admin-panel-head"><div><span class="admin-eyebrow dark">EXPENSE LEDGER</span><h2>This tax year</h2></div><button id="tax-refresh" class="text-button" type="button">Refresh</button></div><div id="tax-web-list" class="tax-web-list"><div class="empty-state">Loading…</div></div></div>
+            </div>
+          </section>
+
           <section id="section-activity" class="admin-section">
             <div class="admin-panel"><div class="admin-panel-head admin-panel-head-rich"><div><span class="admin-eyebrow dark">RECENT ACTIVITY</span><h2>Cloud notifications</h2><p>Events and reminders currently available to your HQ account.</p></div></div><div id="activity-list" class="notification-list"><div class="empty-state">Loading…</div></div></div>
           </section>
