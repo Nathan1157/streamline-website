@@ -1,44 +1,5 @@
-
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.12 });
-reveals.forEach((el) => observer.observe(el));
-
-const glow = document.querySelector('.cursor-glow');
-window.addEventListener('pointermove', (e) => {
-  if (!glow) return;
-  glow.style.left = e.clientX + 'px';
-  glow.style.top = e.clientY + 'px';
-}, { passive:true });
-
-const nav = document.querySelector('.site-nav');
-
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  if (nav) {
-    const t = Math.min(y / 500, 1);
-    nav.style.background = `rgba(7,9,10,${0.58 + (t * 0.20)})`;
-    nav.style.transform = `translateX(-50%) translateY(${t * -4}px) scale(${1 - t * .012})`;
-  }
-
-  document.querySelectorAll('.product-card').forEach((card) => {
-    const r = card.getBoundingClientRect();
-    const center = innerHeight * .5;
-    const d = (r.top + r.height/2 - center) / innerHeight;
-    const tilt = Math.max(-1, Math.min(1, d));
-    card.style.transform = `translateY(${tilt * -8}px)`;
-  });
-}, { passive:true });
-
-document.querySelectorAll('a[href^="#"]').forEach((link) => {
-  link.addEventListener('click', (e) => {
-    const id = link.getAttribute('href');
-    const target = document.querySelector(id);
-    if (!target) return;
-    e.preventDefault();
-    target.scrollIntoView({ behavior:'smooth', block:'start' });
-  });
-});
+const reveals=document.querySelectorAll('.reveal');if('IntersectionObserver'in window){const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.1});reveals.forEach(e=>o.observe(e))}else reveals.forEach(e=>e.classList.add('visible'));
+const glow=document.querySelector('.cursor-glow');window.addEventListener('pointermove',e=>{if(glow){glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px'}},{passive:true});
+const nav=document.querySelector('.site-nav');window.addEventListener('scroll',()=>nav&&nav.classList.toggle('scrolled',scrollY>25),{passive:true});
+document.querySelectorAll('.faq-q').forEach(b=>b.addEventListener('click',()=>b.closest('.faq-item').classList.toggle('open')));
+const menu=document.querySelector('.mobile-menu');if(menu)menu.addEventListener('click',()=>{const n=document.querySelector('.nav-links');if(!n)return;const open=n.dataset.open==='1';n.dataset.open=open?'0':'1';Object.assign(n.style,open?{}:{display:'flex',position:'fixed',top:'77px',left:'9px',right:'9px',flexDirection:'column',alignItems:'stretch',padding:'12px',background:'rgba(7,9,8,.97)',border:'1px solid rgba(255,255,255,.09)',borderRadius:'16px',boxShadow:'0 25px 70px rgba(0,0,0,.45)'});if(open)n.removeAttribute('style')});
