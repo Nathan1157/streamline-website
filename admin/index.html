@@ -43,7 +43,7 @@
         <div class="admin-workspace">
           <header class="admin-workspace-top">
             <div><p class="admin-eyebrow">STREAMLINE CLOUD</p><h1 id="workspace-title">Overview</h1><p id="admin-greeting">Cloud-connected operations</p></div>
-            <div class="admin-actions"><span id="cloud-state" class="cloud-state"><i></i>Live</span><button id="refresh-btn" class="admin-btn" type="button">↻ Refresh</button></div>
+            <div class="admin-actions"><button id="add-lead-btn" class="admin-btn admin-btn-primary" type="button">＋ Add lead</button><span id="cloud-state" class="cloud-state"><i></i>Live</span><button id="refresh-btn" class="admin-btn" type="button">↻ Refresh</button></div>
           </header>
 
           <section id="section-overview" class="admin-section active">
@@ -88,6 +88,32 @@
     <section class="lead-drawer lead-drawer-v2" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title">
       <div class="lead-drawer-head"><div><span class="admin-eyebrow dark">LEAD WORKSPACE</span><h2 id="lead-detail-title">Lead</h2><p id="lead-detail-subtitle">Loading…</p></div><button id="lead-modal-close" class="drawer-close" type="button" aria-label="Close lead details">×</button></div>
       <div id="lead-detail-body" class="lead-detail-body"><div class="empty-state">Loading lead…</div></div>
+    </section>
+  </div>
+
+
+  <div id="manual-lead-modal" class="lead-modal" aria-hidden="true">
+    <div class="lead-modal-backdrop" data-close-manual></div>
+    <section class="manual-lead-dialog" role="dialog" aria-modal="true" aria-labelledby="manual-lead-title">
+      <div class="lead-drawer-head"><div><span class="admin-eyebrow dark">MANUAL LEAD INTAKE</span><h2 id="manual-lead-title">Add a new lead</h2><p>You will automatically be recorded as the lead setter.</p></div><button id="manual-lead-close" class="drawer-close" type="button" aria-label="Close">×</button></div>
+      <div class="manual-lead-body">
+        <div id="manual-lead-error" class="admin-error"></div>
+        <div class="lead-setter-banner"><span>Lead setter</span><strong id="manual-setter-name">Current HQ user</strong><small>Cloud records this automatically. It cannot be changed here.</small></div>
+        <div class="manual-lead-grid">
+          <label><span>Contact name *</span><input id="manual-contact" maxlength="180" autocomplete="name"></label>
+          <label><span>Business name</span><input id="manual-business" maxlength="220" autocomplete="organization"></label>
+          <label><span>Email</span><input id="manual-email" type="email" maxlength="254" autocomplete="email" placeholder="name@business.com"></label>
+          <label><span>Phone</span><input id="manual-phone" inputmode="tel" maxlength="14" autocomplete="tel" placeholder="(412) 555-0123"></label>
+          <label class="wide"><span>Business street address</span><input id="manual-address" maxlength="240" autocomplete="street-address"></label>
+          <label><span>City</span><input id="manual-city" maxlength="140" autocomplete="address-level2"></label>
+          <label><span>State</span><input id="manual-state" maxlength="2" autocomplete="address-level1" placeholder="PA"></label>
+          <label><span>ZIP</span><input id="manual-zip" inputmode="numeric" maxlength="10" autocomplete="postal-code" placeholder="15317"></label>
+          <label class="wide"><span>Products / needs</span><input id="manual-products" maxlength="500" placeholder="POS, Core, custom software…"></label>
+          <label class="wide"><span>Notes</span><textarea id="manual-message" maxlength="10000" placeholder="What did the prospect ask about? Add useful context for whoever follows up."></textarea></label>
+        </div>
+        <label class="manual-self-assign"><input id="manual-self-assign" type="checkbox"><span><strong>Assign this lead to me too</strong><small>Use this if you are also handling the sales consultation. Otherwise it will enter the unassigned queue for management.</small></span></label>
+        <div class="manual-lead-actions"><button id="manual-cancel" class="admin-btn" type="button">Cancel</button><button id="manual-submit" class="admin-btn admin-btn-primary" type="button">Create lead</button></div>
+      </div>
     </section>
   </div>
 

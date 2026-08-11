@@ -1,0 +1,6 @@
+Streamline Luxury Website v4.0.6
+- Admin Mini-HQ now supports manual lead intake for every authenticated HQ user.
+- Signed-in HQ user is automatically recorded as created_by_user_id / lead setter.
+- Optional "Assign this lead to me too" keeps lead-setting and closing roles distinct.
+- Manual lead intake validates email, phone, state, and ZIP and supports business address, products, and notes.
+- Newly created lead refreshes from Cloud and opens directly in the lead workspace.
