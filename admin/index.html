@@ -1,1 +1,75 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; connect-src 'self' https://api.streamlinebusinessos.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self'; font-src 'self' data:; form-action 'self'; base-uri 'self'; upgrade-insecure-requests; block-all-mixed-content"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Admin Portal | Streamline Business Solutions</title><meta name="description" content="Secure Streamline web admin portal."><link rel="stylesheet" href="/styles.css"></head><body><div class="grain" aria-hidden="true"></div><div class="cursor-glow" aria-hidden="true"></div><header class="site-nav"><a class="nav-brand" href="/" aria-label="Streamline Business Solutions home"><img class="nav-company-logo" src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions"></a><nav class="nav-links" aria-label="Primary navigation"><a href="/products">Products</a><a href="/core">Core</a><a href="/about">About</a><a href="/custom">Custom Software</a><a href="/support">Support</a></nav><div class="nav-actions"><a class="nav-cta" href="/contact">Book a consultation</a><button class="mobile-menu" aria-label="Open menu" type="button">☰</button></div></header><main class="admin-page"><div class="admin-shell"><section id="login-view" class="admin-login"><img src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions"><h1>Admin Portal</h1><p>Sign in with the same HQ Login ID and 4-digit PIN you use in Streamline HQ.</p><div id="login-form" role="form" aria-label="HQ admin login"><div class="field"><label>HQ LOGIN ID</label><input id="hq-login-id" required autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></div><div class="field" style="margin-top:12px"><label>4-DIGIT HQ PIN</label><input id="hq-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required autocomplete="current-password"></div><button id="login-submit" class="button primary" style="width:100%;margin-top:18px" type="button">Sign in</button><div id="login-error" class="admin-error"></div></div></section><section id="dashboard-view" class="admin-dashboard"><div class="admin-top"><div class="admin-title"><h1>Streamline Admin</h1><p id="admin-greeting">Cloud-connected lead view</p></div><div class="admin-actions"><button id="refresh-btn" class="admin-btn">Refresh</button><button id="logout-btn" class="admin-btn">Sign out</button></div></div><div class="admin-kpis"><div class="kpi"><span id="kpi-a-label">New web leads</span><strong id="kpi-a">—</strong></div><div class="kpi"><span id="kpi-b-label">Today's leads</span><strong id="kpi-b">—</strong></div><div class="kpi"><span id="kpi-c-label">Open leads</span><strong id="kpi-c">—</strong></div></div><div class="admin-panel"><div class="admin-panel-head"><h2 id="lead-title">Leads</h2><span id="lead-subtitle" style="font-size:10px;color:#78837b"></span></div><div id="lead-list" class="lead-list"><div class="empty-state">Loading…</div></div></div><div id="dashboard-error" class="admin-error"></div></section></div></main><script src="/script.js"></script><script src="/admin/admin.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; connect-src 'self' https://api.streamlinebusinessos.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self'; font-src 'self' data:; form-action 'self'; base-uri 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Admin Portal | Streamline Business Solutions</title>
+  <meta name="description" content="Secure Streamline web admin portal.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <header class="site-nav">
+    <a class="nav-brand" href="/" aria-label="Streamline Business Solutions home"><img class="nav-company-logo" src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions"></a>
+    <nav class="nav-links" aria-label="Primary navigation"><a href="/products">Products</a><a href="/core">Core</a><a href="/about">About</a><a href="/custom">Custom Software</a><a href="/support">Support</a></nav>
+    <div class="nav-actions"><a class="nav-cta" href="/contact">Book a consultation</a><button class="mobile-menu" aria-label="Open menu" type="button">☰</button></div>
+  </header>
+
+  <main class="admin-page">
+    <div class="admin-shell">
+      <section id="login-view" class="admin-login">
+        <div class="admin-login-badge">SECURE CLOUD ACCESS</div>
+        <img src="/assets/streamline-main-logo-nav.png" alt="Streamline Business Solutions">
+        <h1>Admin Portal</h1>
+        <p>Use the same HQ Login ID and 4-digit PIN you use in Streamline HQ.</p>
+        <div id="login-form" role="form" aria-label="HQ admin login">
+          <div class="field"><label>HQ LOGIN ID</label><input id="hq-login-id" required autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></div>
+          <div class="field" style="margin-top:12px"><label>4-DIGIT HQ PIN</label><input id="hq-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required autocomplete="current-password"></div>
+          <button id="login-submit" class="button primary" style="width:100%;margin-top:18px" type="button">Sign in securely</button>
+          <div id="login-error" class="admin-error"></div>
+        </div>
+      </section>
+
+      <section id="dashboard-view" class="admin-dashboard">
+        <div class="admin-top">
+          <div class="admin-title"><span class="admin-eyebrow">STREAMLINE CLOUD</span><h1>Lead Command Center</h1><p id="admin-greeting">Cloud-connected lead management</p></div>
+          <div class="admin-actions"><button id="refresh-btn" class="admin-btn">↻ Refresh</button><button id="logout-btn" class="admin-btn">Sign out</button></div>
+        </div>
+
+        <div class="admin-kpis">
+          <button class="kpi kpi-button" data-filter="new-web"><span id="kpi-a-label">New web leads</span><strong id="kpi-a">—</strong><small>Needs attention</small></button>
+          <button class="kpi kpi-button" data-filter="today"><span id="kpi-b-label">Today's leads</span><strong id="kpi-b">—</strong><small>Scheduled / created today</small></button>
+          <button class="kpi kpi-button" data-filter="all"><span id="kpi-c-label">Open leads</span><strong id="kpi-c">—</strong><small>Active pipeline</small></button>
+        </div>
+
+        <div class="admin-panel lead-panel">
+          <div class="admin-panel-head admin-panel-head-rich">
+            <div><span class="admin-eyebrow dark">LEAD PIPELINE</span><h2 id="lead-title">Leads</h2><p id="lead-subtitle">Live from Streamline Cloud</p></div>
+            <div class="lead-tools"><label class="lead-search"><span>⌕</span><input id="lead-search" type="search" placeholder="Search leads…" autocomplete="off"></label><select id="lead-filter" class="admin-select"><option value="all">All accessible</option><option value="new-web">New web leads</option><option value="today">Today</option><option value="unassigned">Unassigned</option></select></div>
+          </div>
+          <div class="lead-table-head"><span>Lead</span><span>Contact</span><span>Activity</span><span>Assignment</span><span>Status</span></div>
+          <div id="lead-list" class="lead-list"><div class="empty-state">Loading…</div></div>
+        </div>
+        <div id="dashboard-error" class="admin-error"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="lead-modal" class="lead-modal" aria-hidden="true">
+    <div class="lead-modal-backdrop" data-close-modal></div>
+    <section class="lead-drawer" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title">
+      <div class="lead-drawer-head">
+        <div><span class="admin-eyebrow dark">LEAD DETAILS</span><h2 id="lead-detail-title">Lead</h2><p id="lead-detail-subtitle">Loading…</p></div>
+        <button id="lead-modal-close" class="drawer-close" type="button" aria-label="Close lead details">×</button>
+      </div>
+      <div id="lead-detail-body" class="lead-detail-body"><div class="empty-state">Loading lead…</div></div>
+    </section>
+  </div>
+
+  <script src="/script.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
