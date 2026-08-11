@@ -219,45 +219,54 @@
     }
   }
 
-  const loginForm = $('#login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      clearError($('#login-error'));
+  async function submitLogin() {
+    clearError($('#login-error'));
 
-      const loginInput = $('#hq-login-id');
-      const pinInput = $('#hq-pin');
-      const submitButton = $('#login-submit');
+    const loginInput = $('#hq-login-id');
+    const pinInput = $('#hq-pin');
+    const submitButton = $('#login-submit');
 
-      const loginId = String(loginInput?.value || '').trim();
-      const pin = String(pinInput?.value || '');
+    const loginId = String(loginInput?.value || '').trim();
+    const pin = String(pinInput?.value || '');
 
-      // Clear the PIN from the DOM before any network response is received.
-      if (pinInput) pinInput.value = '';
+    // Remove the PIN from the page immediately after reading it. It is never
+    // written to the URL, localStorage, sessionStorage, or browser history.
+    if (pinInput) pinInput.value = '';
 
-      if (!loginId || !/^\d{4}$/.test(pin)) {
-        showError($('#login-error'), 'Enter your HQ Login ID and 4-digit PIN.');
-        return;
-      }
+    if (!loginId || !/^\d{4}$/.test(pin)) {
+      showError($('#login-error'), 'Enter your HQ Login ID and 4-digit PIN.');
+      return;
+    }
 
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Signing in…';
+    }
+
+    try {
+      await login(loginId, pin);
+    } catch (error) {
+      showError($('#login-error'), error.message);
+    } finally {
       if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = 'Signing in…';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Sign in';
       }
+    }
+  }
 
-      try {
-        await login(loginId, pin);
-      } catch (error) {
-        showError($('#login-error'), error.message);
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.textContent = 'Sign in';
-        }
+  // There is deliberately no HTML <form> on this page. GitHub Pages is a
+  // static host and rejects POSTs to /admin with 405. Login can therefore
+  // only be initiated by JavaScript directly against Streamline Cloud.
+  $('#login-submit')?.addEventListener('click', submitLogin);
+  ['#hq-login-id', '#hq-pin'].forEach((selector) => {
+    $(selector)?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        submitLogin();
       }
     });
-  }
+  });
 
   $('#logout-btn')?.addEventListener('click', logout);
   $('#refresh-btn')?.addEventListener('click', loadDashboard);
