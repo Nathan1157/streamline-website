@@ -26,3 +26,14 @@ Backend:
   The uploaded archive used for this build is a static front-end bundle only (HTML/CSS/JS).
   No server/API/backend source was present, so contact/support/admin backend actions have NOT been fabricated.
   They are ready to be wired when the actual production backend files are supplied.
+
+V7 REAL WEB HQ
+- /admin now uses the production Streamline Cloud HQ authentication endpoint.
+- Sign-in endpoint: /api/v1/hq-auth/login
+- Session validation: /api/v1/hq-auth/me
+- Temporary password change flow is supported.
+- HQ access token is held in sessionStorage and sent as a Bearer token to /api/v1/hq/*.
+- The Cloud API already allows https://streamlinebusinessos.com and https://www.streamlinebusinessos.com via CORS.
+- Web HQ loads real Cloud data for dashboard, leads, sold jobs, payroll, complaints, employees, scheduling, price approvals, notifications, and analytics.
+- Individual panels gracefully show permission errors when the signed-in HQ account lacks the required permission.
+- /admin remains intentionally unlinked from the public site.

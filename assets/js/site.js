@@ -24,10 +24,3 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
   });
 });
-
-window.addEventListener("scroll",()=>{
-  const h=document.querySelector(".site-header");
-  if(h) h.style.boxShadow=window.scrollY>18
-    ?"0 12px 34px rgba(34,56,37,.09)"
-    :"0 10px 28px rgba(34,56,37,.045)";
-});
