@@ -37,3 +37,13 @@ V7 REAL WEB HQ
 - Web HQ loads real Cloud data for dashboard, leads, sold jobs, payroll, complaints, employees, scheduling, price approvals, notifications, and analytics.
 - Individual panels gracefully show permission errors when the signed-in HQ account lacks the required permission.
 - /admin remains intentionally unlinked from the public site.
+
+
+V8 STAFF WEB HQ
+- /admin is now a staff portal built from the real HQ + Cloud API, with zero demo rows.
+- Any active HQ credential can sign in using the existing HQ Login ID/password.
+- Staff see only today's lead/schedule view from /api/v1/hq/web-dashboard; this portal intentionally does not expose the full lead queue.
+- Any staff member can log a customer complaint and report an internal issue.
+- Owner 001 / owner role gets an additional Tax Receipts tool.
+- Owner receipt uploads require Cloud API v2.14.32 included separately; receipt files persist under /opt/streamline/data/tax-receipts.
+- /admin remains unlinked from the public website.
