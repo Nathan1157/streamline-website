@@ -723,3 +723,29 @@ button{cursor:pointer}
     linear-gradient(180deg,#fff,#fafcf7)!important;
 }
 @media(max-width:1050px){.brand{border-right:0;padding-right:0}}
+
+/* v10 Streamline Systems branding */
+.brand-full{
+  display:flex;
+  align-items:center;
+  padding-right:22px;
+  min-width:215px;
+}
+.brand-full img{
+  width:220px;
+  max-height:58px;
+  object-fit:contain;
+  object-position:left center;
+  filter:none;
+}
+.site-footer .brand-full img{
+  width:230px;
+  max-height:72px;
+}
+@media(max-width:1100px){
+  .brand-full{min-width:auto;padding-right:10px}
+  .brand-full img{width:185px}
+}
+@media(max-width:760px){
+  .brand-full img{width:165px}
+}
