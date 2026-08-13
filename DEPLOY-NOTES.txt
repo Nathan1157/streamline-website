@@ -1,0 +1,28 @@
+STREAMLINE WEBSITE DEPLOYMENT NOTES
+
+Clean routes:
+  /software
+  /pos
+  /reserve
+  /pizza
+  /operations
+  /training
+  /workforce
+  /proposals
+  /display
+  /inventory
+  /contact
+  /support
+  /careers
+  /admin
+
+Admin:
+  /admin is direct-link only. It is intentionally not linked from the public site.
+
+404:
+  404.html is included at the site root. Configure the static host to use it for missing pages.
+
+Backend:
+  The uploaded archive used for this build is a static front-end bundle only (HTML/CSS/JS).
+  No server/API/backend source was present, so contact/support/admin backend actions have NOT been fabricated.
+  They are ready to be wired when the actual production backend files are supplied.
