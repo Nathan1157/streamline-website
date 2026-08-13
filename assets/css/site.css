@@ -770,3 +770,30 @@ button{cursor:pointer}
   .header-row{min-height:76px !important;}
   .brand-full img{width:180px;max-height:48px;}
 }
+
+
+/* v12 header logo sizing + true transparent asset */
+.site-header .brand-full{
+  padding-right:24px;
+}
+.site-header .brand-full img{
+  width:240px;
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+  object-position:left center;
+  filter:none;
+}
+.header-row{
+  min-height:96px !important;
+}
+@media (max-width:1200px){
+  .site-header .brand-full img{width:220px;max-height:none;}
+}
+@media (max-width:980px){
+  .site-header .brand-full img{width:200px;max-height:none;}
+}
+@media (max-width:760px){
+  .header-row{min-height:80px !important;}
+  .site-header .brand-full img{width:180px;max-height:none;}
+}
