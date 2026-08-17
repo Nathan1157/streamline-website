@@ -1,8 +1,0 @@
-Streamline Website v4.1.1
-
-- Website admin login now supports temporary password 0000 only to enter a forced password-change flow.
-- Added dedicated Today schedule with chronological consultation times, contact names, phone numbers, email addresses, and lead status.
-- Added dedicated Customers section so sold/won accounts are visually separated from prospects and active leads.
-- Customer and Today rows drill into the existing lead/customer workspace.
-- Existing lead assignment, manual lead intake, complaint management, tax/receipt relay, notifications, and role-based access are retained.
-- Password logins are governed by the Cloud API five-attempts-per-hour rate limit.

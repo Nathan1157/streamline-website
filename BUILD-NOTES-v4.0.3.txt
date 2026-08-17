@@ -1,7 +1,0 @@
-Streamline Luxury Website v4.0.3
-- Admin login no longer uses an HTML form at all.
-- Login button is type=button and JavaScript POSTs only to Streamline Cloud.
-- Pressing Enter is handled in JavaScript and cannot submit /admin to GitHub Pages.
-- HQ Login ID and PIN inputs have no name attributes, so credentials cannot be serialized into a URL.
-- PIN is cleared from the DOM immediately before the network request.
-- Existing HTTPS/mixed-content CSP hardening retained.
