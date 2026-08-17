@@ -13,6 +13,46 @@
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#70c817">
+<script>
+(function(){
+  var path = window.location.pathname || '';
+  if (!/\.html$/i.test(path)) return;
+  var legacy = {
+    '/contact.html':'/contact',
+    '/contact-us.html':'/contact',
+    '/products.html':'/software',
+    '/software.html':'/software',
+    '/custom-development.html':'/custom-software',
+    '/custom-software.html':'/custom-software',
+    '/industries.html':'/industries',
+    '/case-studies.html':'/case-studies',
+    '/how-it-works.html':'/how-it-works',
+    '/ownership.html':'/how-it-works',
+    '/company.html':'/about',
+    '/about.html':'/about',
+    '/support.html':'/support',
+    '/careers.html':'/careers',
+    '/privacy.html':'/privacy',
+    '/terms.html':'/terms',
+    '/sitemap.html':'/sitemap',
+    '/core.html':'/core',
+    '/pos.html':'/pos',
+    '/reserve.html':'/reserve',
+    '/pizza.html':'/pizza',
+    '/operations.html':'/operations',
+    '/training.html':'/training',
+    '/workforce.html':'/workforce',
+    '/inventory.html':'/inventory',
+    '/display.html':'/display',
+    '/proposals.html':'/proposals',
+    '/admin.html':'/admin'
+  };
+  var target = legacy[path.toLowerCase()];
+  if (target) {
+    window.location.replace(target + window.location.search + window.location.hash);
+  }
+})();
+</script>
 </head><body>
 
 <header class="site-header">
