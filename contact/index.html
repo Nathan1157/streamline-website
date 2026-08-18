@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Contact | Streamline Systems</title><meta name="description" content="Contact Streamline Systems.">
-<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/site.css?v=16">
 <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
@@ -41,15 +41,21 @@
   <p><a class="email-card" href="mailto:nathan@getstreamlinesystems.com">nathan@getstreamlinesystems.com</a></p>
 </div>
 <div class="card card-pad">
-<form data-static-form>
+<form data-consultation-form novalidate>
 <div class="form-grid">
-<div class="field"><label>Name</label><input required placeholder="Your name"></div>
-<div class="field"><label>Business</label><input required placeholder="Business name"></div>
-<div class="field"><label>Email</label><input type="email" required placeholder="you@business.com"></div>
-<div class="field"><label>Phone</label><input placeholder="Optional"></div>
-<div class="field full"><label>What can we help with?</label><select><option>Custom software</option><option>Streamline products</option><option>Support</option><option>Partnership</option><option>Something else</option></select></div>
-<div class="field full"><label>Tell us about the workflow or problem</label><textarea required placeholder="What happens today, and what would you like to improve?"></textarea></div>
-<div class="field full"><button class="btn btn-primary" type="submit">Send inquiry</button><div class="form-note" data-form-status>Form backend will be connected when the production backend is supplied.</div></div>
+<div class="field"><label for="consult-name">Name</label><input id="consult-name" name="name" required autocomplete="name" placeholder="Your name"></div>
+<div class="field"><label for="consult-business">Business</label><input id="consult-business" name="business" required autocomplete="organization" placeholder="Business name"></div>
+<div class="field"><label for="consult-email">Email</label><input id="consult-email" name="email" type="email" required autocomplete="email" placeholder="you@business.com"></div>
+<div class="field"><label for="consult-phone">Phone</label><input id="consult-phone" name="phone" type="tel" required inputmode="tel" autocomplete="tel" placeholder="(724) 555-0123"></div>
+<div class="field full"><label for="consult-address">Business address</label><input id="consult-address" name="businessAddress" required autocomplete="street-address" placeholder="Street address"></div>
+<div class="field"><label for="consult-city">City</label><input id="consult-city" name="businessCity" required autocomplete="address-level2" placeholder="Canonsburg"></div>
+<div class="field"><label for="consult-state">State</label><input id="consult-state" name="businessState" required maxlength="2" autocomplete="address-level1" placeholder="PA"></div>
+<div class="field"><label for="consult-zip">ZIP code</label><input id="consult-zip" name="businessPostalCode" required inputmode="numeric" autocomplete="postal-code" placeholder="15317"></div>
+<div class="field"><label for="consult-source">How did you hear about Streamline?</label><select id="consult-source" name="source"><option value="Website">Website</option><option value="Referral">Referral</option><option value="Social media">Social media</option><option value="Local business / in person">Local business / in person</option><option value="Search engine">Search engine</option><option value="Other">Other</option></select></div>
+<div class="field full"><label for="consult-help">What can we help with?</label><select id="consult-help" name="product"><option>Custom software</option><option>Streamline products</option><option>Point of sale</option><option>Workforce management</option><option>Inventory</option><option>Reservations</option><option>Training</option><option>Business operations</option><option>Proposals / sales presentations</option><option>Digital displays</option><option>Something else</option></select></div>
+<div class="field full"><label for="consult-message">Tell us about the workflow or problem</label><textarea id="consult-message" name="message" required placeholder="What happens today, and what would you like to improve?"></textarea></div>
+<div class="field hp-field" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+<div class="field full"><button class="btn btn-primary" type="submit" data-consult-submit>Request consultation</button><div class="form-note" data-form-status>Tell us what you are trying to improve. We will follow up to schedule the conversation.</div></div>
 </div>
 </form>
 </div>
@@ -80,5 +86,5 @@
     <div class="footer-bottom"><span>© 2026 Streamline HQ LLC. Streamline Systems is the operating brand. All rights reserved.</span><span>Southwestern Pennsylvania · Serving businesses wherever the work takes us.</span></div>
   </div>
 </footer>
-<script src="/assets/js/site.js"></script>
+<script src="/assets/js/site.js?v=16"></script>
 </body></html>
