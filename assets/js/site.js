@@ -1,5 +1,21 @@
 const STREAMLINE_API="https://api.streamlinebusinessos.com";
 
+function showConsultationThankYou(){
+  const existing=document.querySelector("[data-consult-thankyou]");
+  if(existing)existing.remove();
+  const overlay=document.createElement("div");
+  overlay.className="consult-thankyou-overlay";
+  overlay.setAttribute("data-consult-thankyou","");
+  overlay.innerHTML=`<div class="consult-thankyou-modal" role="dialog" aria-modal="true" aria-labelledby="consult-thankyou-title"><button type="button" class="consult-thankyou-close" aria-label="Close">×</button><div class="consult-thankyou-check">✓</div><h2 id="consult-thankyou-title">Thank you!</h2><p>Your consultation request has been submitted. We’ll reach out soon.</p><button type="button" class="btn btn-primary consult-thankyou-done">Done</button></div>`;
+  const close=()=>{overlay.classList.add("closing");setTimeout(()=>overlay.remove(),160)};
+  overlay.addEventListener("click",e=>{if(e.target===overlay)close()});
+  overlay.querySelector(".consult-thankyou-close").addEventListener("click",close);
+  overlay.querySelector(".consult-thankyou-done").addEventListener("click",close);
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add("open"));
+  overlay.querySelector(".consult-thankyou-done").focus();
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
   const page=document.body.dataset.page||"";
   document.querySelectorAll("[data-nav]").forEach(a=>{if(a.dataset.nav===page)a.classList.add("active")});
@@ -34,6 +50,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         form.reset();
         status.className="form-note form-success";
         status.textContent="Request received. Thank you — Streamline Systems will follow up to schedule your consultation.";
+        showConsultationThankYou();
       }catch(err){
         status.className="form-note form-error";
         status.textContent=err?.message||"We could not send the request automatically. Please try again in a moment.";
