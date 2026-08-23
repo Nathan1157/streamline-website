@@ -1,0 +1,13 @@
+STREAMLINE SYSTEMS WEBSITE v22 — PROPERTIES IDENTITY FOUNDATION
+
+Added routes:
+- /properties/setup/  — first cloud Properties owner bootstrap, authenticated by the existing Streamline customer account
+- /properties/login/  — separate landlord / property manager login
+- /properties/        — landlord Properties Online shell
+- /tenant/login/      — separate tenant login
+- /tenant/            — tenant portal shell
+
+The Streamline customer account remains separate. It is used only to prove customer ownership for first Properties cloud-owner setup.
+Landlord tokens and tenant tokens use separate browser session keys and separate Cloud token types.
+
+This phase does not yet synchronize portfolio data or desktop-created account credentials to Cloud. Those are the next Properties Online steps.
