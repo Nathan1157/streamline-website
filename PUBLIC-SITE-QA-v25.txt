@@ -1,0 +1,38 @@
+Streamline Systems Public Website v25 — Redesign / Security QA Notes
+
+PUBLIC MARKETING SCOPE UPDATED
+- Homepage, Software, Industries, How It Works, About, Contact, Careers, Support, Case Studies, Core, public product pages, legal/supporting public pages.
+- Current product list: Auto, Properties, POS, Kitchen, Reserve, Workforce, Proposals, Operations, Training, Display.
+- Old Pizza marketing URL redirects to Kitchen.
+- Old Inventory marketing URL redirects to the current Software index.
+- Custom Development removed from primary navigation and reduced to a low-prominence footer path.
+- Public Properties marketing lives at /property-management so the existing /properties authenticated workspace remains separate.
+
+VISUAL / UX
+- Charcoal + soft off-white foundation with Streamline green as the accent.
+- Navigation labels stay on one line at desktop widths.
+- Product screenshot placeholders are stored in /assets/img/placeholders and can be replaced with final real screenshots later.
+- Small reveal, float, hover, pulse, ambient, and pointer-depth motion is used. No scroll hijacking or long forced animations.
+- prefers-reduced-motion is respected.
+- Homepage explains vertical (industry-specific) and horizontal (business-wide) product strategy.
+- One-time ownership philosophy is prominent; recurring services are described only where recurring infrastructure exists.
+- Contact conversion path is simplified to name, business, email, optional phone, product interest, and optional message.
+
+SECURITY / COMPLIANCE BASELINE
+- Front-end source was scanned for private API keys, database credentials, private signing keys, password hashes, and similar secrets; none are intentionally included.
+- Passwords, reset codes, and login verification codes are sent in POST request bodies rather than URL query strings.
+- Customer website login now requires credentials plus an emailed 6-digit code before a session is issued.
+- Customer password reset uses an emailed short-lived code; no security questions.
+- Authenticator-app (TOTP) enrollment/confirmation/disable support is included for customer accounts. TOTP secrets are encrypted before database storage.
+- Login / verification / reset routes are rate limited and customer passwords remain bcrypt-hashed.
+- Helmet security headers remain enabled in the Cloud API.
+- Accessibility and Security public pages were added.
+- Privacy and Terms pages explicitly remain pending final legal review; no compliance certification is claimed.
+- A “Do Not Sell or Share” control was not added blindly. Add privacy-choice controls only when actual data practices and applicable law require them.
+
+DO-NOT-TOUCH BOUNDARY PRESERVED
+- Existing admin, Properties landlord workspace/login/setup, tenant workspace/login, Auto approval, and test pages were not visually redesigned as part of the public-site redesign.
+- Customer /account authentication functionality was updated because launch security requirements specifically apply to customer login, but the account area was not converted into a marketing page.
+
+OPEN LAUNCH SECURITY NOTE
+- HQ/employee and Properties/tenant authentication are separate namespaces. Their existing interfaces were intentionally not redesigned here. If “email verification on every login” is intended to include those separate internal/specialized namespaces, apply the same MFA policy in a dedicated authentication update before launch rather than silently changing those workflows inside a public-site redesign.

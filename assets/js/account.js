@@ -57,14 +57,47 @@ function renderOverview(d){
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
-  const form=document.querySelector("#account-login-form");
-  if(form){
+  const loginForm=document.querySelector("#account-login-form");
+  if(loginForm){
     if(sessionStorage.getItem(tokenKey)){location.replace("/account/");return}
-    form.addEventListener("submit",async e=>{e.preventDefault();const status=form.querySelector("[data-status]");const btn=form.querySelector("button[type=submit]");const fd=new FormData(form);status.textContent="Signing in…";status.className="account-form-status";btn.disabled=true;try{const d=await api("/api/v1/auth/core-account/login",{method:"POST",body:JSON.stringify({email:String(fd.get("email")||"").trim(),password:String(fd.get("password")||"")})});sessionStorage.setItem(tokenKey,d.accessToken);sessionStorage.setItem(refreshKey,d.refreshToken);location.href="/account/"}catch(err){status.textContent=err.message||"Unable to sign in.";status.className="account-form-status error"}finally{btn.disabled=false}});return;
+    let challengeId=null,authenticatorRequired=false;
+    const creds=loginForm.querySelector('[data-login-step="credentials"]'),verify=loginForm.querySelector('[data-login-step="verify"]'),status=loginForm.querySelector('[data-status]'),authField=loginForm.querySelector('[data-authenticator-field]');
+    loginForm.querySelector('[data-login-back]')?.addEventListener('click',()=>{challengeId=null;authenticatorRequired=false;verify.hidden=true;creds.hidden=false;status.textContent='';loginForm.reset()});
+    loginForm.addEventListener("submit",async e=>{
+      e.preventDefault();status.textContent="";status.className="account-form-status";
+      const btn=loginForm.querySelector('button[type="submit"]');btn.disabled=true;
+      try{
+        const fd=new FormData(loginForm);
+        if(!challengeId){
+          status.textContent="Checking credentials and sending your verification code…";
+          const d=await api("/api/v1/auth/core-account/login",{method:"POST",body:JSON.stringify({email:String(fd.get("email")||"").trim(),password:String(fd.get("password")||"")})});
+          challengeId=d.challengeId;authenticatorRequired=!!d.authenticatorRequired;authField.hidden=!authenticatorRequired;authField.querySelector('input').required=authenticatorRequired;creds.hidden=true;verify.hidden=false;status.textContent="Verification code sent.";loginForm.querySelector('[name="verificationCode"]').focus();
+        }else{
+          status.textContent="Verifying…";
+          const payload={challengeId,code:String(fd.get("verificationCode")||"").trim()};if(authenticatorRequired)payload.authenticatorCode=String(fd.get("authenticatorCode")||"").trim();
+          const d=await api("/api/v1/auth/core-account/login/verify",{method:"POST",body:JSON.stringify(payload)});sessionStorage.setItem(tokenKey,d.accessToken);sessionStorage.setItem(refreshKey,d.refreshToken);location.href="/account/";
+        }
+      }catch(err){status.textContent=err.message||"Unable to sign in.";status.className="account-form-status error"}finally{btn.disabled=false}
+    });return;
   }
+
+  const resetForm=document.querySelector('#account-reset-form');
+  if(resetForm){
+    let challengeId=null;const emailStep=resetForm.querySelector('[data-reset-step="email"]'),completeStep=resetForm.querySelector('[data-reset-step="complete"]'),status=resetForm.querySelector('[data-status]');
+    resetForm.addEventListener('submit',async e=>{e.preventDefault();status.textContent='';status.className='account-form-status';const btn=resetForm.querySelector('button[type="submit"]');btn.disabled=true;try{const fd=new FormData(resetForm);if(!challengeId){const d=await api('/api/v1/auth/core-account/password-reset/start',{method:'POST',body:JSON.stringify({email:String(fd.get('email')||'').trim()})});challengeId=d.challengeId;emailStep.hidden=true;completeStep.hidden=false;status.textContent='If an active account exists for that email, a reset code has been sent.';resetForm.querySelector('[name="resetCode"]').focus()}else{await api('/api/v1/auth/core-account/password-reset/complete',{method:'POST',body:JSON.stringify({challengeId,code:String(fd.get('resetCode')||'').trim(),password:String(fd.get('newPassword')||'')})});status.textContent='Password updated. Returning to sign in…';status.className='account-form-status';setTimeout(()=>location.href='/account/login/',900)}}catch(err){status.textContent=err.message||'Password could not be reset.';status.className='account-form-status error'}finally{btn.disabled=false}});return;
+  }
+
   const dashboard=document.querySelector("[data-dashboard]");if(!dashboard)return;
   if(!sessionStorage.getItem(tokenKey)&&!sessionStorage.getItem(refreshKey)){location.replace("/account/login/");return}
   document.querySelector("[data-logout]")?.addEventListener("click",logout);
   document.querySelector("[data-manage-billing]")?.addEventListener("click",async e=>{const b=e.currentTarget;b.disabled=true;b.textContent="Opening…";try{const d=await api("/api/v1/customer-portal/billing/portal-session",{method:"POST",body:"{}"});location.href=d.portalUrl}catch(err){alert(err.message||"Billing could not be opened.");b.disabled=false;b.textContent="Manage billing"}});
-  api("/api/v1/customer-portal/overview").then(d=>{document.querySelector("[data-loading]").hidden=true;dashboard.hidden=false;renderOverview(d)}).catch(err=>{document.querySelector("[data-loading]").hidden=true;if(err.status===401){logout();return}const box=document.querySelector("[data-error]");box.hidden=false;box.textContent=err.message||"Your account could not be loaded."});
+  api("/api/v1/customer-portal/overview").then(d=>{document.querySelector("[data-loading]").hidden=true;dashboard.hidden=false;renderOverview(d);renderMfa(d.account)}).catch(err=>{document.querySelector("[data-loading]").hidden=true;if(err.status===401){logout();return}const box=document.querySelector("[data-error]");box.hidden=false;box.textContent=err.message||"Your account could not be loaded."});
 });
+
+function renderMfa(account){
+  const host=document.querySelector('[data-mfa-status]');if(!host)return;const setup=document.querySelector('[data-mfa-setup]');
+  if(account?.totpEnabled){host.innerHTML='<p><span class="account-status good">Enabled</span> Authenticator-app verification is active for this account.</p><form data-mfa-disable class="account-form"><label>Current authenticator code<input type="text" name="code" inputmode="numeric" maxlength="6" pattern="\\d{6}" required></label><button class="btn btn-light" type="submit">Disable authenticator</button><p class="account-form-status" data-disable-message></p></form>';host.querySelector('[data-mfa-disable]').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,msg=form.querySelector('[data-disable-message]'),fd=new FormData(form);try{await api('/api/v1/auth/core-account/totp/disable',{method:'POST',body:JSON.stringify({code:String(fd.get('code')||'').trim()})});location.reload()}catch(err){msg.textContent=err.message;msg.className='account-form-status error'}});return}
+  host.innerHTML='<p><span class="account-status">Not enabled</span> Add an authenticator app for an additional verification factor.</p><button class="btn btn-primary" type="button" data-start-mfa>Set up authenticator</button>';
+  host.querySelector('[data-start-mfa]').addEventListener('click',async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Preparing…';try{const d=await api('/api/v1/auth/core-account/totp/setup',{method:'POST',body:'{}'});setup.hidden=false;setup.querySelector('[data-mfa-secret]').textContent=d.secret;setup.scrollIntoView({behavior:'smooth',block:'center'})}catch(err){alert(err.message||'Authenticator setup could not be started.')}finally{b.disabled=false;b.textContent='Set up authenticator'}});
+  setup.querySelector('[data-mfa-confirm]')?.addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,msg=form.querySelector('[data-mfa-message]'),fd=new FormData(form);try{await api('/api/v1/auth/core-account/totp/confirm',{method:'POST',body:JSON.stringify({code:String(fd.get('code')||'').trim()})});location.reload()}catch(err){msg.textContent=err.message;msg.className='account-form-status error'}});
+}
