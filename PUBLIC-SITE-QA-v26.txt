@@ -1,0 +1,27 @@
+Streamline Systems Public Website v26 QA
+
+Scope
+- Public marketing site only.
+- Specialized/internal interfaces remain outside redesign scope: account/customer authenticated areas, tenant/property authenticated areas, admin, Core, test, and auto-approval.
+
+Changes
+- Public header now uses a high-contrast charcoal treatment, remains sticky, and compresses after scrolling.
+- Navigation labels remain on one line on desktop; mobile menu remains responsive.
+- Product landing pages rebuilt with distinct layouts and industry-specific copy for Auto, Properties, POS, Kitchen, Reserve, Workforce, Proposals, Operations, Training, and Display.
+- Product pages use a mix of industry stock imagery and existing product screenshot placeholders. Placeholder screenshots can be replaced later without restructuring the pages.
+- Contact / Find Your Fit form now visibly asks only: Name, Email, Phone Number.
+- No visible business, product, message, address, or intake-question fields remain.
+- Honeypot remains hidden for bot filtering.
+- Product context can still be passed in the URL query string from a product-page CTA without asking the visitor for another field.
+- Existing public-site motion remains subtle: reveal, hover/depth, floating elements, and header transition. No scroll hijacking.
+
+Cloud compatibility
+- Website form payload no longer depends on a visitor-supplied business name.
+- Cloud API v2.21.1 companion patch makes business optional for website consultation submissions.
+
+Checks run
+- Parsed all 10 rebuilt product pages and contact page successfully.
+- Confirmed each rebuilt product page has a unique H1 and multiple visual assets.
+- Confirmed contact form visible data-entry fields are Name, Email, and Phone Number only.
+- site.js passed Node syntax validation.
+- Cloud v2.21.1 npm run check passed all release/security contract checks.
